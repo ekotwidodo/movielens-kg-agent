@@ -1,0 +1,15 @@
+# Movies that share at least one genre with movieId 1, and how many genres they share.
+PREFIX ml: <https://example.org/movielens/>
+
+SELECT ?movieId ?title (COUNT(DISTINCT ?genre) AS ?sharedGenres)
+WHERE {
+  ?source ml:movieId 1 ;
+          ml:hasGenre ?genre .
+  ?movie ml:hasGenre ?genre ;
+         ml:movieId ?movieId ;
+         ml:title ?title .
+  FILTER (?movie != ?source)
+}
+GROUP BY ?movieId ?title
+ORDER BY DESC(?sharedGenres) ?movieId
+LIMIT 100

@@ -1,0 +1,80 @@
+[project]
+name = "movielens-kg-agent"
+version = "0.1.0"
+description = "MovieLens RDF Knowledge Graph with a grounded natural-language SPARQL agent."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "rdflib>=7.1,<8",
+    "pydantic>=2.9,<3",
+    "pydantic-settings>=2.6,<3",
+    "httpx>=0.28,<1",
+]
+
+[project.optional-dependencies]
+api = [
+    "fastapi>=0.115,<1",
+    "python-multipart>=0.0.34",
+    "uvicorn[standard]>=0.32,<1",
+]
+
+[dependency-groups]
+dev = [
+    "movielens-kg-agent[api]",
+    "pytest>=8.3,<9",
+    "pytest-cov>=6.0,<7",
+    "ruff>=0.8,<1",
+    "mypy>=1.13,<2",
+]
+
+[project.scripts]
+mlkg-validate-dataset = "backend.cli:validate_dataset_cli"
+mlkg-build-graph = "backend.cli:build_graph_cli"
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "backend",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["backend", "."]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+filterwarnings = [
+    # Starlette's TestClient suggests a newer HTTP client; not relevant for these tests.
+    "ignore:Using `httpx` with `starlette.testclient`",
+]
+markers = [
+    "fuseki: needs a running Apache Jena Fuseki endpoint (set FUSEKI_TEST_QUERY_ENDPOINT)",
+    "e2e: end-to-end smoke test against running services (set E2E_FUSEKI_QUERY_ENDPOINT)",
+    "smoke: checks the deployed stack through the public proxy (set SMOKE_BASE_URL)",
+]
+
+[tool.coverage.run]
+source = ["backend"]
+branch = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["backend", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "N", "SIM", "RUF", "PTH", "BLE", "S"]
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S", "PTH", "E501", "N806"]
+"scripts/**" = ["S", "PTH", "E501"]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["backend"]
+
+[[tool.mypy.overrides]]
+module = ["rdflib.*"]
+follow_untyped_imports = true

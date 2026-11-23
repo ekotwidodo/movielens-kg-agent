@@ -1,0 +1,13 @@
+# Find movies that received at least one rating of 4.5 or higher.
+PREFIX ml: <https://example.org/movielens/>
+
+SELECT DISTINCT ?movieId ?title
+WHERE {
+  ?rating ml:ratedMovie ?movie ;
+          ml:ratingValue ?value .
+  FILTER (?value >= 4.5)
+  ?movie ml:movieId ?movieId ;
+         ml:title ?title .
+}
+ORDER BY ?movieId
+LIMIT 100

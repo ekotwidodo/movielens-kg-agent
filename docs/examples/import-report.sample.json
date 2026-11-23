@@ -1,0 +1,60 @@
+{
+  "status": "succeeded",
+  "strict_mode": true,
+  "importer_version": "0.1.0",
+  "started_at": "2026-11-17T05:47:28+00:00",
+  "dataset": {
+    "snapshot_id": "fixture-2026-01-01",
+    "name": "MovieLens Test Fixture",
+    "release_id": "synthetic-fixture",
+    "source_url": "https://grouplens.org/datasets/movielens/latest/",
+    "readme_url": "https://files.grouplens.org/datasets/movielens/ml-latest-small-README.html",
+    "usage_terms": "Synthetic test data shaped like MovieLens files.",
+    "retrieval_date": "2026-01-01"
+  },
+  "source_files": [
+    {
+      "file_name": "movies.csv",
+      "rows": 6,
+      "sha256": "e3eae3d6699bec5a4ee0bd6f54dd0ec05decbb3435c2609e62f7f934469cd38a"
+    },
+    {
+      "file_name": "ratings.csv",
+      "rows": 9,
+      "sha256": "02246f94d5fd09a91cc92854f6665c13376f8c4a193ae8d10782d66b69e980e6"
+    },
+    {
+      "file_name": "tags.csv",
+      "rows": 6,
+      "sha256": "05cf1a172f489586edad48b6f519e2a0c2de8d44912f0a6a7317856945c4198e"
+    },
+    {
+      "file_name": "links.csv",
+      "rows": 5,
+      "sha256": "6a87aadc57f5d3529347a642c0bd8cb4786d82897294ce2d841ab5b8beb80745"
+    }
+  ],
+  "created_resources": {
+    "movies": 6,
+    "genres": 13,
+    "users": 3,
+    "rating_events": 9,
+    "tag_assignments": 6,
+    "movies_without_listed_genres": 1,
+    "movies_with_imdb_id": 5,
+    "movies_with_tmdb_id": 4
+  },
+  "triple_count": 357,
+  "skipped_rows": {
+    "movies.csv": 0,
+    "ratings.csv": 0,
+    "tags.csv": 0,
+    "links.csv": 0
+  },
+  "validation_issue_count": 0,
+  "validation_issues": [],
+  "output": {
+    "graph_file": "fixture.ttl",
+    "format": "turtle"
+  }
+}

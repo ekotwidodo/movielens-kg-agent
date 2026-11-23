@@ -1,0 +1,10 @@
+# Development-only override. Publishes Fuseki and the API on the loopback interface for debugging.
+# Never use this file on the public server.
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+services:
+  fuseki:
+    ports:
+      - "127.0.0.1:${FUSEKI_DEBUG_HOST_PORT:-2004}:3030"
+  api:
+    ports:
+      - "127.0.0.1:${API_DEBUG_HOST_PORT:-2003}:8000"

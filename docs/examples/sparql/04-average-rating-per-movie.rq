@@ -1,0 +1,13 @@
+# Average rating and number of ratings per movie.
+PREFIX ml: <https://example.org/movielens/>
+
+SELECT ?movieId ?title (AVG(?value) AS ?averageRating) (COUNT(?rating) AS ?ratingCount)
+WHERE {
+  ?rating ml:ratedMovie ?movie ;
+          ml:ratingValue ?value .
+  ?movie ml:movieId ?movieId ;
+         ml:title ?title .
+}
+GROUP BY ?movieId ?title
+ORDER BY DESC(?ratingCount) ?movieId
+LIMIT 100

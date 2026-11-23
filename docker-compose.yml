@@ -1,0 +1,104 @@
+name: movielens-kg-agent
+
+# Values such as ${SPARQL_QUERY_TIMEOUT_SECONDS} come from the shell or from .env.
+# The defaults below match .env.example. The smoke test (scripts/deployment_smoke_test.sh)
+# overrides the volume, folders, and env file so it never touches your real graph.
+
+x-query-timeout: &query-timeout
+  SPARQL_QUERY_TIMEOUT_SECONDS: ${SPARQL_QUERY_TIMEOUT_SECONDS:-15}
+
+services:
+  fuseki:
+    build:
+      context: ./docker/fuseki
+    image: movielens-kg-agent/fuseki:6.2.0
+    restart: unless-stopped
+    environment:
+      <<: *query-timeout
+      JAVA_OPTIONS: ${FUSEKI_JAVA_OPTIONS:--Xms256m -Xmx1024m}
+    volumes:
+      - tdb2_data:/fuseki/databases
+    networks: [internal]
+    # No published port: Fuseki is only reachable inside the Compose network.
+    # For local debugging use docker-compose.dev.yml.
+    mem_limit: 6g
+
+  # One-shot maintenance command. Stop Fuseki first, then for example:
+  #   docker compose run --rm kg-loader load
+  kg-loader:
+    image: movielens-kg-agent/fuseki:6.2.0
+    build:
+      context: ./docker/fuseki
+    profiles: [tools]
+    entrypoint: ["/fuseki/kg-admin.sh"]
+    command: ["load"]
+    environment:
+      JAVA_OPTIONS: ${FUSEKI_JAVA_OPTIONS:--Xms256m -Xmx1024m}
+    volumes:
+      - tdb2_data:/fuseki/databases
+      - ${GRAPH_STAGING_DIR:-./data/processed}:/fuseki/staging:ro
+      - ${BACKUP_DIR:-./data/backups}:/fuseki/backups
+    networks: [internal]
+
+  api:
+    build:
+      context: .
+    image: movielens-kg-agent/api:0.1.0
+    restart: unless-stopped
+    depends_on:
+      fuseki:
+        condition: service_healthy
+    # LLM settings and secrets come from .env (never committed).
+    env_file:
+      - path: ${API_ENV_FILE:-.env}
+        required: false
+    environment:
+      <<: *query-timeout
+      FUSEKI_QUERY_ENDPOINT: http://fuseki:3030/movielens/sparql
+    volumes:
+      - ./data:/app/data
+    networks: [internal]
+    # No published port: reachable only through the proxy at /api/.
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        # The SPARQL views must query the same namespace the graph was built with.
+        VITE_GRAPH_NAMESPACE: ${MOVIELENS_NAMESPACE:-https://example.org/movielens/}
+    image: movielens-kg-agent/web:0.1.0
+    restart: unless-stopped
+    networks: [internal]
+    # No published port: reachable only through the proxy.
+
+  proxy:
+    image: caddy:2.11.9-alpine
+    restart: unless-stopped
+    depends_on:
+      fuseki:
+        condition: service_healthy
+      # "started", not "healthy": /sparql keeps working even if the API is misconfigured.
+      api:
+        condition: service_started
+      web:
+        condition: service_started
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+    ports:
+      - "${PROXY_BIND_ADDRESS:-127.0.0.1}:${PROXY_HTTP_HOST_PORT:-2001}:80"
+      - "${PROXY_BIND_ADDRESS:-127.0.0.1}:${PROXY_HTTPS_HOST_PORT:-2002}:443"
+    volumes:
+      - ./docker/proxy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [internal]
+
+networks:
+  internal:
+
+volumes:
+  # Persistent TDB2 store. `docker compose down -v` DELETES this graph store.
+  tdb2_data:
+    name: ${TDB2_VOLUME_NAME:-movielens_tdb2_data}
+  caddy_data:
+  caddy_config:

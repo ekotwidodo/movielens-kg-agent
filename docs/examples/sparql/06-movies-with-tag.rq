@@ -1,0 +1,14 @@
+# Movies tagged with "pixar" (case-insensitive), and how often.
+PREFIX ml: <https://example.org/movielens/>
+
+SELECT ?movieId ?title (COUNT(?assignment) AS ?tagCount)
+WHERE {
+  ?assignment ml:taggedMovie ?movie ;
+              ml:tagText ?tagText .
+  FILTER (LCASE(STR(?tagText)) = "pixar")
+  ?movie ml:movieId ?movieId ;
+         ml:title ?title .
+}
+GROUP BY ?movieId ?title
+ORDER BY ?movieId
+LIMIT 100

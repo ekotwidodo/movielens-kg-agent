@@ -1,0 +1,14 @@
+# Users who rated one movie (movieId 1), with their rating and its UTC time.
+PREFIX ml: <https://example.org/movielens/>
+
+SELECT ?userId ?value ?ratedAt
+WHERE {
+  ?movie ml:movieId 1 .
+  ?user ml:ratingEvent ?rating ;
+        ml:userId ?userId .
+  ?rating ml:ratedMovie ?movie ;
+          ml:ratingValue ?value ;
+          ml:ratingTimestamp ?ratedAt .
+}
+ORDER BY ?userId
+LIMIT 100

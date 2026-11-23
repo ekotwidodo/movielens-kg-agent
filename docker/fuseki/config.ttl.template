@@ -1,0 +1,38 @@
+## Apache Jena Fuseki configuration for the MovieLens knowledge graph.
+##
+## Security rules:
+##  - Only the SPARQL *query* operation is configured. There is no update,
+##    upload, or Graph Store write endpoint, so the data is read-only over HTTP.
+##  - SERVICE (federated queries to remote endpoints) is disabled.
+##  - Every query has a time limit.
+##
+## The server is started with Fuseki "main" (FusekiMainCmd), which has no
+## admin API and no web UI.
+##
+## This is a template. entrypoint.sh replaces the @...@ placeholders at start-up:
+##   @QUERY_TIMEOUT_MS@  from SPARQL_QUERY_TIMEOUT_SECONDS (shared with the API)
+##   @TDB2_DATA_DIR@     from TDB2_DATA_DIR
+
+PREFIX :        <#>
+PREFIX fuseki:  <http://jena.apache.org/fuseki#>
+PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ja:      <http://jena.hpl.hp.com/2005/11/Assembler#>
+PREFIX tdb2:    <http://jena.apache.org/2016/tdb#>
+
+[] rdf:type fuseki:Server ;
+    ja:context [ ja:cxtName "arq:httpServiceAllowed" ; ja:cxtValue "false" ] ;
+    ## Query time limit in milliseconds. It must be set on the server: a
+    ## ja:context on the service is ignored by Fuseki 6.2.0 (checked by test).
+    ja:context [ ja:cxtName "arq:queryTimeout" ; ja:cxtValue "@QUERY_TIMEOUT_MS@" ] ;
+    fuseki:services ( :movielensService ) .
+
+:movielensService rdf:type fuseki:Service ;
+    fuseki:name "movielens" ;
+    fuseki:endpoint [ fuseki:operation fuseki:query ; fuseki:name "sparql" ] ;
+    fuseki:endpoint [ fuseki:operation fuseki:gsp-rw ; fuseki:name "data" ] ;
+    fuseki:endpoint [ fuseki:operation fuseki:update ; fuseki:name "update" ] ;
+    fuseki:dataset :movielensDataset .
+
+:movielensDataset rdf:type tdb2:DatasetTDB2 ;
+    ## Inside the container this is on a named Docker volume.
+    tdb2:location "@TDB2_DATA_DIR@" .

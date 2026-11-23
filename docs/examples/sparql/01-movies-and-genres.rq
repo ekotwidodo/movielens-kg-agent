@@ -1,0 +1,16 @@
+# List movies and their genres (one row per movie, genres joined with ", ").
+PREFIX ml: <https://example.org/movielens/>
+
+SELECT ?movieId ?title (GROUP_CONCAT(?genreLabel; separator=", ") AS ?genres)
+WHERE {
+  ?movie a ml:Movie ;
+         ml:movieId ?movieId ;
+         ml:title ?title .
+  OPTIONAL {
+    ?movie ml:hasGenre ?genre .
+    ?genre ml:genreLabel ?genreLabel .
+  }
+}
+GROUP BY ?movieId ?title
+ORDER BY ?movieId
+LIMIT 100

@@ -1,0 +1,9 @@
+{
+  "snapshot_id": "fixture-2026-01-01",
+  "dataset_name": "MovieLens Test Fixture",
+  "release_id": "synthetic-fixture",
+  "source_url": "https://grouplens.org/datasets/movielens/latest/",
+  "readme_url": "https://files.grouplens.org/datasets/movielens/ml-latest-small-README.html",
+  "usage_terms": "Synthetic test data shaped like MovieLens files.",
+  "retrieval_date": "2026-01-01"
+}

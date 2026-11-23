@@ -1,0 +1,9 @@
+{
+  "snapshot_id": "ml-latest-small-YYYY-MM-DD",
+  "dataset_name": "MovieLens Latest Small",
+  "release_id": "ml-latest-small",
+  "source_url": "https://grouplens.org/datasets/movielens/latest/",
+  "readme_url": "https://files.grouplens.org/datasets/movielens/ml-latest-small-README.html",
+  "usage_terms": "GroupLens MovieLens usage license, see README.txt in the downloaded archive. No endorsement by GroupLens or the University of Minnesota is implied.",
+  "retrieval_date": "YYYY-MM-DD"
+}

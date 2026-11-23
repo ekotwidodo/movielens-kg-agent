@@ -1,0 +1,12 @@
+# Find movies in one genre. Change "Comedy" to any genre label, e.g. "Sci-Fi".
+PREFIX ml: <https://example.org/movielens/>
+
+SELECT ?movieId ?title
+WHERE {
+  ?genre ml:genreLabel "Comedy" .
+  ?movie ml:hasGenre ?genre ;
+         ml:movieId ?movieId ;
+         ml:title ?title .
+}
+ORDER BY ?movieId
+LIMIT 100

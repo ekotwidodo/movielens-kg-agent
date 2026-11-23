@@ -1,0 +1,68 @@
+# Public entry point.
+#   /sparql  -> Fuseki query endpoint (read-only)
+#   /api/*   -> FastAPI agent service (includes /api/docs)
+#   anything else -> short notice (the web frontend is not part of this release yet)
+#
+# SITE_ADDRESS examples:
+#   ":80"                                   plain HTTP (local, or behind another TLS proxy)
+#   "movielens-knowledge.graphs.web.id"     automatic HTTPS with Let's Encrypt
+{
+	admin off
+}
+
+{$SITE_ADDRESS::80} {
+	encode gzip
+
+	request_body {
+		max_size 500MB
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		-Server
+	}
+
+	handle /sparql {
+		@browserNav {
+			method GET
+			not query query=*
+		}
+		reverse_proxy @browserNav web:80
+
+		# Only SPARQL Protocol query requests are allowed.
+		@notQueryMethod not method GET POST HEAD OPTIONS
+		respond @notQueryMethod "Method not allowed" 405
+
+		# Block SPARQL Update requests here as well (Fuseki also rejects them).
+		@sparqlUpdate header_regexp Content-Type (?i)^application/sparql-update
+		respond @sparqlUpdate "SPARQL Update is disabled" 403
+
+		rewrite * /movielens/sparql?{query}
+		reverse_proxy fuseki:3030 {
+			transport http {
+				response_header_timeout 180s
+			}
+		}
+	}
+
+	handle /health/* {
+		reverse_proxy api:8000
+	}
+
+	handle /api/* {
+		reverse_proxy api:8000 {
+			# Flush each chunk immediately so Server-Sent Events stream in real time.
+			flush_interval -1
+			transport http {
+				# The agent may wait for the LLM and the query engine.
+				response_header_timeout 180s
+			}
+		}
+	}
+
+	# Public demo web frontend
+	handle {
+		reverse_proxy web:80
+	}
+}
